@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TalentBridge – Job Portal</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --amber: #F59E0B;
+    --amber-light: #FCD34D;
+    --dark: #0D0D0D;
+    --panel: #161616;
+    --card: #1E1E1E;
+    --border: #2A2A2A;
+    --muted: #6B7280;
+    --text: #F3F4F6;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--dark); color: var(--text); margin: 0; min-height: 100vh; overflow-x: hidden; }
+  h1,h2,h3,h4,.font-display { font-family: 'Syne', sans-serif; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--dark); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Page transitions */
+  .page { display: none; animation: fadeIn .35s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Amber glow */
+  .glow { box-shadow: 0 0 30px rgba(245,158,11,.18); }
+  .btn-amber { background: var(--amber); color: #000; font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: .03em; border: none; cursor: pointer; transition: all .2s; }
+  .btn-amber:hover { background: var(--amber-light); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(245,158,11,.4); }
+  .btn-outline { border: 1.5px solid var(--border); background: transparent; color: var(--text); font-family: 'Syne', sans-serif; font-weight: 600; cursor: pointer; transition: all .2s; }
+  .btn-outline:hover { border-color: var(--amber); color: var(--amber); }
+
+  /* Cards */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; transition: border-color .2s, transform .2s; }
+  .card:hover { border-color: rgba(245,158,11,.35); transform: translateY(-2px); }
+
+  /* Input */
+  .inp { background: var(--panel); border: 1.5px solid var(--border); color: var(--text); border-radius: 8px; padding: 10px 14px; width: 100%; font-family: 'DM Sans', sans-serif; transition: border-color .2s; outline: none; font-size: 14px; }
+  .inp:focus { border-color: var(--amber); }
+  .inp::placeholder { color: var(--muted); }
+  label { font-size: 13px; color: #9CA3AF; font-weight: 500; display: block; margin-bottom: 5px; }
+
+  /* Badge */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; font-family: 'Syne', sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+  .badge-amber { background: rgba(245,158,11,.15); color: var(--amber); border: 1px solid rgba(245,158,11,.3); }
+  .badge-green { background: rgba(34,197,94,.12); color: #4ADE80; border: 1px solid rgba(34,197,94,.25); }
+  .badge-red { background: rgba(239,68,68,.12); color: #F87171; border: 1px solid rgba(239,68,68,.25); }
+  .badge-blue { background: rgba(59,130,246,.12); color: #60A5FA; border: 1px solid rgba(59,130,246,.25); }
+  .badge-gray { background: rgba(107,114,128,.15); color: #9CA3AF; border: 1px solid rgba(107,114,128,.25); }
+
+  /* Sidebar nav */
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--muted); transition: all .2s; font-family: 'DM Sans', sans-serif; }
+  .nav-item:hover { background: rgba(245,158,11,.08); color: var(--text); }
+  .nav-item.active { background: rgba(245,158,11,.12); color: var(--amber); }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  /* Hero gradient mesh */
+  .hero-mesh { background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(245,158,11,.22) 0%, transparent 70%), radial-gradient(ellipse 40% 40% at 80% 60%, rgba(245,158,11,.08) 0%, transparent 60%), var(--dark); }
+
+  /* Ticker */
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .ticker-inner { display: flex; animation: ticker 30s linear infinite; white-space: nowrap; }
+  .ticker-inner:hover { animation-play-state: paused; }
+
+  /* Stat counter */
+  .stat-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2rem; color: var(--amber); }
+
+  /* Toast */
+  #toast { position: fixed; bottom: 28px; right: 28px; z-index: 9999; }
+  .toast-item { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--amber); padding: 14px 20px; border-radius: 10px; margin-top: 10px; font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,.5); animation: toastIn .3s ease; min-width: 240px; }
+  @keyframes toastIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; padding: 32px; animation: fadeIn .25s ease; }
+
+  /* Progress bar */
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--amber), var(--amber-light)); border-radius: 3px; transition: width .6s ease; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; padding: 10px 16px; border-bottom: 1px solid var(--border); }
+  td { padding: 14px 16px; font-size: 13px; border-bottom: 1px solid rgba(42,42,42,.6); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+  /* Tag chip */
+  .chip { display: inline-block; padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 500; background: rgba(255,255,255,.06); color: #D1D5DB; margin: 2px; }
+
+  /* Selected tab */
+  .tab { padding: 8px 18px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Syne', sans-serif; transition: all .2s; color: var(--muted); }
+  .tab.active { background: rgba(245,158,11,.12); color: var(--amber); }
+  .tab:hover:not(.active) { color: var(--text); }
+
+  /* Notification dot */
+  .notif-dot { width: 8px; height: 8px; background: var(--amber); border-radius: 50%; display: inline-block; }
+
+  /* Avatar */
+  .avatar { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; flex-shrink: 0; }
+
+  /* Checkbox custom */
+  input[type=checkbox] { accent-color: var(--amber); width: 15px; height: 15px; }
+
+  /* Range */
+  input[type=range] { accent-color: var(--amber); }
+
+  /* Select */
+  select.inp { cursor: pointer; }
+
+  /* Animated underline on title */
+  .underline-amber { position: relative; display: inline-block; }
+  .underline-amber::after { content: ''; position: absolute; left: 0; bottom: -4px; width: 100%; height: 3px; background: var(--amber); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- ===================== LANDING PAGE ===================== -->
+<div id="page-landing" class="page active">
+  <!-- Navbar -->
+  <nav style="border-bottom:1px solid var(--border);backdrop-filter:blur(10px);position:sticky;top:0;z-index:100;background:rgba(13,13,13,.85);">
+    <div style="max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:32px;height:32px;background:var(--amber);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" style="width:16px;height:16px;"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;">TalentBridge</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn-outline" style="padding:8px 18px;border-radius:8px;font-size:13px;" onclick="showAuth('login')">Sign In</button>
+        <button class="btn-amber" style="padding:8px 20px;border-radius:8px;font-size:13px;" onclick="showAuth('register')">Get Started</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero-mesh" style="padding:100px 24px 80px;text-align:center;">
+    <div style="max-width:780px;margin:0 auto;">
+      <div class="badge badge-amber" style="margin-bottom:20px;font-size:11px;">✦ 2,400+ Active Opportunities</div>
+      <h1 style="font-size:clamp(2.4rem,6vw,4rem);font-weight:800;line-height:1.1;margin:0 0 20px;">
+        Find Your Next <span style="color:var(--amber);">Dream Job</span><br/>Or Perfect Hire
+      </h1>
+      <p style="color:#9CA3AF;font-size:16px;max-width:520px;margin:0 auto 40px;line-height:1.7;">TalentBridge connects ambitious professionals with forward-thinking companies. Your career journey starts here.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn-amber" style="padding:14px 32px;border-radius:10px;font-size:15px;" onclick="showAuth('register','seeker')">🎓 I'm Job Seeking</button>
+        <button class="btn-outline" style="padding:14px 32px;border-radius:10px;font-size:15px;" onclick="showAuth('register','employer')">🏢 I'm Hiring</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ticker -->
+  <div style="background:var(--panel);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 0;overflow:hidden;">
+    <div class="ticker-inner" id="ticker"></div>
+  </div>
+
+  <!-- Stats -->
+  <section style="max-width:900px;margin:0 auto;padding:80px 24px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:24px;">
+      <div class="card" style="padding:28px;text-align:center;">
+        <div class="stat-num">12,400+</div>
+        <div style="color:var(--muted);font-size:13px;margin-top:4px;">Active Jobs</div>
+      </div>
+      <div class="card" style="padding:28px;text-align:center;">
+        <div class="stat-num">3,800+</div>
+        <div style="color:var(--muted);font-size:13px;margin-top:4px;">Companies</div>
+      </div>
+      <div class="card" style="padding:28px;text-align:center;">
+        <div class="stat-num">98K+</div>
+        <div style="color:var(--muted);font-size:13px;margin-top:4px;">Job Seekers</div>
+      </div>
+      <div class="card" style="padding:28px;text-align:center;">
+        <div class="stat-num">87%</div>
+        <div style="color:var(--muted);font-size:13px;margin-top:4px;">Placement Rate</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Jobs Preview -->
+  <section style="max-width:1100px;margin:0 auto;padding:0 24px 80px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
+      <h2 style="font-size:1.6rem;font-weight:800;margin:0;">Featured <span class="underline-amber">Listings</span></h2>
+      <button class="btn-outline" style="padding:8px 18px;border-radius:8px;font-size:13px;" onclick="showAuth('login')">View All →</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;" id="landing-jobs"></div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="border-top:1px solid var(--border);padding:32px 24px;text-align:center;color:var(--muted);font-size:13px;">
+    <span style="font-family:'Syne',sans-serif;font-weight:800;color:var(--amber);">TalentBridge</span> — Connecting talent with opportunity &nbsp;·&nbsp; Built with ❤️
+  </footer>
+</div>
+
+<!-- ===================== AUTH PAGE ===================== -->
+<div id="page-auth" class="page">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse 60% 50% at 30% 50%,rgba(245,158,11,.1) 0%,transparent 70%),var(--dark);">
+    <div style="width:100%;max-width:460px;">
+      <!-- Back -->
+      <button class="btn-outline" style="padding:7px 14px;border-radius:7px;font-size:13px;margin-bottom:28px;" onclick="showPage('landing')">← Back</button>
+      <div class="card glow" style="padding:36px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;">
+          <div style="width:28px;height:28px;background:var(--amber);border-radius:7px;display:flex;align-items:center;justify-content:center;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" style="width:14px;height:14px;"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+          </div>
+          <span style="font-family:'Syne',sans-serif;font-weight:800;">TalentBridge</span>
+        </div>
+
+        <!-- Toggle -->
+        <div style="display:flex;background:var(--panel);border-radius:9px;padding:4px;margin-bottom:24px;" id="auth-toggle">
+          <button id="toggle-login" class="tab active" style="flex:1;text-align:center;" onclick="switchAuth('login')">Sign In</button>
+          <button id="toggle-register" class="tab" style="flex:1;text-align:center;" onclick="switchAuth('register')">Register</button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="form-login">
+          <h2 style="font-size:1.3rem;font-weight:800;margin:0 0 6px;">Welcome back</h2>
+          <p style="color:var(--muted);font-size:13px;margin:0 0 24px;">Sign in to your account</p>
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div><label>Email</label><input class="inp" type="email" id="login-email" placeholder="you@example.com"/></div>
+            <div><label>Password</label><input class="inp" type="password" id="login-pass" placeholder="••••••••"/></div>
+          </div>
+          <div style="margin-top:10px;margin-bottom:20px;display:flex;align-items:center;gap:6px;">
+            <input type="checkbox" id="remember"/><label style="margin:0;font-size:12px;cursor:pointer;" for="remember">Remember me</label>
+          </div>
+          <button class="btn-amber" style="width:100%;padding:12px;border-radius:9px;font-size:14px;" onclick="doLogin()">Sign In →</button>
+          <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:16px;">Demo: seeker@demo.com / employer@demo.com / admin@demo.com (any password)</p>
+        </div>
+
+        <!-- Register Form -->
+        <div id="form-register" style="display:none;">
+          <h2 style="font-size:1.3rem;font-weight:800;margin:0 0 6px;">Create account</h2>
+          <p style="color:var(--muted);font-size:13px;margin:0 0 24px;">Join thousands of professionals</p>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div><label>Full Name</label><input class="inp" type="text" id="reg-name" placeholder="Alex Johnson"/></div>
+            <div><label>Email</label><input class="inp" type="email" id="reg-email" placeholder="you@example.com"/></div>
+            <div><label>Password</label><input class="inp" type="password" id="reg-pass" placeholder="Min. 8 characters"/></div>
+            <div>
+              <label>I am a</label>
+              <select class="inp" id="reg-role">
+                <option value="seeker">Job Seeker / Student</option>
+                <option value="employer">Employer / Company</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn-amber" style="width:100%;padding:12px;border-radius:9px;font-size:14px;margin-top:20px;" onclick="doRegister()">Create Account →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SEEKER DASHBOARD ===================== -->
+<div id="page-seeker" class="page">
+  <div style="display:flex;min-height:100vh;">
+    <!-- Sidebar -->
+    <aside id="seeker-sidebar" style="width:220px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);padding:20px 12px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 6px 20px;">
+        <div style="width:26px;height:26px;background:var(--amber);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" style="width:13px;height:13px;"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;">TalentBridge</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;flex:1;">
+        <div class="nav-item active" onclick="seekerTab('home')" id="snav-home">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Dashboard
+        </div>
+        <div class="nav-item" onclick="seekerTab('jobs')" id="snav-jobs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>Browse Jobs
+        </div>
+        <div class="nav-item" onclick="seekerTab('applications')" id="snav-applications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>My Applications
+        </div>
+        <div class="nav-item" onclick="seekerTab('profile')" id="snav-profile">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile
+        </div>
+        <div class="nav-item" onclick="seekerTab('notifications')" id="snav-notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Notifications <span class="notif-dot" id="notif-dot-s" style="margin-left:auto;"></span>
+        </div>
+      </div>
+      <div style="padding-top:12px;border-top:1px solid var(--border);">
+        <div class="nav-item" onclick="doLogout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main style="flex:1;overflow-x:hidden;">
+      <!-- Header -->
+      <div style="padding:20px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(13,13,13,.9);backdrop-filter:blur(10px);z-index:10;">
+        <div>
+          <h2 id="seeker-page-title" style="margin:0;font-size:1.1rem;font-weight:800;">Dashboard</h2>
+          <p id="seeker-page-sub" style="margin:0;font-size:12px;color:var(--muted);">Welcome back!</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="avatar" style="background:rgba(245,158,11,.15);color:var(--amber);" id="seeker-avatar-nav">JS</div>
+        </div>
+      </div>
+
+      <div style="padding:28px;">
+        <!-- HOME TAB -->
+        <div id="stab-home">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px;">
+            <div class="card" style="padding:22px;">
+              <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Applications</div>
+              <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--amber);" id="s-stat-apps">0</div>
+            </div>
+            <div class="card" style="padding:22px;">
+              <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Shortlisted</div>
+              <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#4ADE80;" id="s-stat-short">0</div>
+            </div>
+            <div class="card" style="padding:22px;">
+              <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Pending</div>
+              <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#60A5FA;" id="s-stat-pend">0</div>
+            </div>
+            <div class="card" style="padding:22px;">
+              <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Profile Views</div>
+              <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#E879F9;">24</div>
+            </div>
+          </div>
+
+          <!-- Profile Completion -->
+          <div class="card" style="padding:22px;margin-bottom:20px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <span style="font-weight:700;font-size:14px;">Profile Completion</span>
+              <span style="font-size:13px;color:var(--amber);font-weight:700;" id="profile-pct">65%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="profile-bar" style="width:65%;"></div></div>
+            <p style="font-size:12px;color:var(--muted);margin-top:10px;">Complete your profile to get better job matches.</p>
+          </div>
+
+          <!-- Recent Applications -->
+          <div class="card" style="padding:22px;">
+            <h3 style="font-size:15px;font-weight:800;margin:0 0 16px;">Recent Applications</h3>
+            <div id="seeker-recent-apps"></div>
+          </div>
+        </div>
+
+        <!-- JOBS TAB -->
+        <div id="stab-jobs" style="display:none;">
+          <!-- Filters -->
+          <div class="card" style="padding:18px;margin-bottom:20px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;">
+              <div><label>Search</label><input class="inp" type="text" id="job-search" placeholder="Job title, skills..." oninput="renderJobs()"/></div>
+              <div><label>Category</label>
+                <select class="inp" id="job-cat" onchange="renderJobs()">
+                  <option value="">All Categories</option>
+                  <option>Technology</option><option>Design</option><option>Marketing</option><option>Finance</option><option>Healthcare</option><option>Education</option>
+                </select>
+              </div>
+              <div><label>Location</label>
+                <select class="inp" id="job-loc" onchange="renderJobs()">
+                  <option value="">All Locations</option>
+                  <option>Remote</option><option>New York</option><option>San Francisco</option><option>London</option><option>Berlin</option>
+                </select>
+              </div>
+              <button class="btn-amber" style="padding:10px 18px;border-radius:8px;font-size:13px;white-space:nowrap;" onclick="renderJobs()">Search</button>
+            </div>
+          </div>
+          <div id="jobs-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;"></div>
+        </div>
+
+        <!-- APPLICATIONS TAB -->
+        <div id="stab-applications" style="display:none;">
+          <div class="card" style="overflow:hidden;">
+            <div style="padding:18px 20px;border-bottom:1px solid var(--border);display:flex;gap:8px;" id="app-filter-tabs">
+              <span class="tab active" onclick="filterApps('all',this)">All</span>
+              <span class="tab" onclick="filterApps('Pending',this)">Pending</span>
+              <span class="tab" onclick="filterApps('Shortlisted',this)">Shortlisted</span>
+              <span class="tab" onclick="filterApps('Rejected',this)">Rejected</span>
+            </div>
+            <div id="apps-table-container"></div>
+          </div>
+        </div>
+
+        <!-- PROFILE TAB -->
+        <div id="stab-profile" style="display:none;">
+          <div style="display:grid;grid-template-columns:1fr 2fr;gap:20px;">
+            <div>
+              <div class="card" style="padding:24px;text-align:center;margin-bottom:16px;">
+                <div class="avatar" style="width:72px;height:72px;border-radius:16px;background:rgba(245,158,11,.15);color:var(--amber);font-size:24px;margin:0 auto 12px;" id="s-avatar-big">JS</div>
+                <h3 style="font-size:16px;font-weight:800;margin:0 0 4px;" id="s-profile-name">Job Seeker</h3>
+                <p style="font-size:12px;color:var(--muted);margin:0 0 14px;" id="s-profile-email">seeker@demo.com</p>
+                <div class="badge badge-blue" style="margin-bottom:16px;">Job Seeker</div>
+                <div style="display:flex;flex-direction:column;gap:8px;text-align:left;font-size:13px;color:var(--muted);">
+                  <span>📍 New York, USA</span>
+                  <span>🎓 B.Tech Computer Science</span>
+                  <span>📅 Joined Apr 2025</span>
+                </div>
+              </div>
+              <div class="card" style="padding:20px;">
+                <h4 style="font-size:13px;font-weight:800;margin:0 0 14px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);">Skills</h4>
+                <div id="skills-display">
+                  <span class="chip">React</span><span class="chip">Node.js</span><span class="chip">Python</span><span class="chip">SQL</span><span class="chip">Java</span><span class="chip">Spring Boot</span>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px;">
+              <div class="card" style="padding:24px;">
+                <h3 style="font-size:15px;font-weight:800;margin:0 0 18px;">Edit Profile</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                  <div><label>Full Name</label><input class="inp" type="text" id="p-name" value="Alex Johnson"/></div>
+                  <div><label>Title</label><input class="inp" type="text" id="p-title" value="Full Stack Developer"/></div>
+                  <div><label>Email</label><input class="inp" type="email" id="p-email" value="seeker@demo.com"/></div>
+                  <div><label>Phone</label><input class="inp" type="tel" id="p-phone" value="+1 555 0100"/></div>
+                  <div><label>Location</label><input class="inp" type="text" id="p-loc" value="New York, USA"/></div>
+                  <div><label>Experience</label>
+                    <select class="inp" id="p-exp">
+                      <option>Fresher</option><option selected>1-2 years</option><option>3-5 years</option><option>5+ years</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="margin-top:14px;"><label>Bio</label><textarea class="inp" rows="3" style="resize:vertical;">Passionate full-stack developer with experience in React and Spring Boot. Looking for challenging opportunities.</textarea></div>
+                <button class="btn-amber" style="margin-top:16px;padding:10px 24px;border-radius:8px;font-size:13px;" onclick="saveProfile()">Save Changes</button>
+              </div>
+              <div class="card" style="padding:24px;">
+                <h3 style="font-size:15px;font-weight:800;margin:0 0 14px;">Resume Upload</h3>
+                <div style="border:2px dashed var(--border);border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:border-color .2s;" onmouseenter="this.style.borderColor='var(--amber)'" onmouseleave="this.style.borderColor='var(--border)'" onclick="document.getElementById('resume-file').click()">
+                  <div style="font-size:28px;margin-bottom:8px;">📄</div>
+                  <p style="margin:0;font-size:13px;font-weight:600;">Drop your resume here or click to browse</p>
+                  <p style="margin:6px 0 0;font-size:11px;color:var(--muted);">PDF, DOC, DOCX up to 5MB</p>
+                  <input type="file" id="resume-file" style="display:none;" accept=".pdf,.doc,.docx" onchange="handleResumeUpload(this)"/>
+                </div>
+                <div id="resume-status" style="margin-top:10px;font-size:13px;color:var(--muted);">No resume uploaded yet.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NOTIFICATIONS TAB -->
+        <div id="stab-notifications" style="display:none;">
+          <div class="card" style="overflow:hidden;">
+            <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+              <h3 style="font-size:15px;font-weight:800;margin:0;">Notifications</h3>
+              <button class="btn-outline" style="padding:6px 14px;border-radius:7px;font-size:12px;" onclick="clearNotifications()">Mark all read</button>
+            </div>
+            <div id="notif-list" style="padding:8px 0;"></div>
+          </div>
+        </div>
+      </div><!-- /padding -->
+    </main>
+  </div>
+</div>
+
+<!-- ===================== EMPLOYER DASHBOARD ===================== -->
+<div id="page-employer" class="page">
+  <div style="display:flex;min-height:100vh;">
+    <!-- Sidebar -->
+    <aside style="width:220px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);padding:20px 12px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 6px 20px;">
+        <div style="width:26px;height:26px;background:var(--amber);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" style="width:13px;height:13px;"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;">TalentBridge</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;flex:1;">
+        <div class="nav-item active" onclick="employerTab('home')" id="enav-home">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Dashboard
+        </div>
+        <div class="nav-item" onclick="employerTab('post')" id="enav-post">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Post a Job
+        </div>
+        <div class="nav-item" onclick="employerTab('listings')" id="enav-listings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>My Listings
+        </div>
+        <div class="nav-item" onclick="employerTab('applicants')" id="enav-applicants">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Applicants
+        </div>
+      </div>
+      <div style="padding-top:12px;border-top:1px solid var(--border);">
+        <div class="nav-item" onclick="doLogout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out
+        </div>
+      </div>
+    </aside>
+    <main style="flex:1;overflow-x:hidden;">
+      <div style="padding:20px 28px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(13,13,13,.9);backdrop-filter:blur(10px);z-index:10;">
+        <h2 id="emp-page-title" style="margin:0;font-size:1.1rem;font-weight:800;">Dashboard</h2>
+        <p style="margin:0;font-size:12px;color:var(--muted);">Employer Portal</p>
+      </div>
+      <div style="padding:28px;">
+
+        <!-- EMPLOYER HOME -->
+        <div id="etab-home">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px;">
+            <div class="card" style="padding:22px;"><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Active Jobs</div><div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--amber);" id="e-stat-jobs">0</div></div>
+            <div class="card" style="padding:22px;"><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Total Applicants</div><div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#4ADE80;" id="e-stat-apps">0</div></div>
+            <div class="card" style="padding:22px;"><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Shortlisted</div><div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#60A5FA;" id="e-stat-short">0</div></div>
+            <div class="card" style="padding:22px;"><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Hired</div><div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#E879F9;">3</div></div>
+          </div>
+          <div class="card" style="padding:22px;">
+            <h3 style="font-size:15px;font-weight:800;margin:0 0 16px;">My Job Listings</h3>
+            <div id="emp-listings-preview"></div>
+          </div>
+        </div>
+
+        <!-- POST JOB -->
+        <div id="etab-post" style="display:none;">
+          <div class="card" style="padding:28px;max-width:700px;">
+            <h3 style="font-size:16px;font-weight:800;margin:0 0 20px;">Post a New Job</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div style="grid-column:1/-1;"><label>Job Title *</label><input class="inp" type="text" id="j-title" placeholder="e.g. Senior React Developer"/></div>
+              <div><label>Category</label>
+                <select class="inp" id="j-cat">
+                  <option>Technology</option><option>Design</option><option>Marketing</option><option>Finance</option><option>Healthcare</option><option>Education</option>
+                </select>
+              </div>
+              <div><label>Location</label><input class="inp" type="text" id="j-loc" placeholder="e.g. Remote, New York"/></div>
+              <div><label>Salary Range</label><input class="inp" type="text" id="j-salary" placeholder="e.g. $80k – $120k"/></div>
+              <div><label>Experience Level</label>
+                <select class="inp" id="j-exp">
+                  <option>Fresher</option><option>1-2 years</option><option>3-5 years</option><option>5+ years</option>
+                </select>
+              </div>
+              <div><label>Job Type</label>
+                <select class="inp" id="j-type">
+                  <option>Full-time</option><option>Part-time</option><option>Contract</option><option>Internship</option>
+                </select>
+              </div>
+              <div><label>Deadline</label><input class="inp" type="date" id="j-deadline"/></div>
+              <div style="grid-column:1/-1;"><label>Required Skills (comma separated)</label><input class="inp" type="text" id="j-skills" placeholder="React, Node.js, PostgreSQL"/></div>
+              <div style="grid-column:1/-1;"><label>Job Description *</label><textarea class="inp" rows="5" id="j-desc" style="resize:vertical;" placeholder="Describe the role, responsibilities, and what you're looking for..."></textarea></div>
+            </div>
+            <button class="btn-amber" style="margin-top:20px;padding:12px 28px;border-radius:9px;font-size:14px;" onclick="postJob()">Publish Job →</button>
+          </div>
+        </div>
+
+        <!-- MY LISTINGS -->
+        <div id="etab-listings" style="display:none;">
+          <div id="emp-full-listings"></div>
+        </div>
+
+        <!-- APPLICANTS -->
+        <div id="etab-applicants" style="display:none;">
+          <div class="card" style="padding:18px;margin-bottom:16px;">
+            <label>Filter by Job</label>
+            <select class="inp" id="app-job-filter" onchange="renderEmployerApplicants()" style="max-width:360px;"></select>
+          </div>
+          <div class="card" style="overflow:hidden;">
+            <div id="applicants-table"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ===================== ADMIN DASHBOARD ===================== -->
+<div id="page-admin" class="page">
+  <div style="display:flex;min-height:100vh;">
+    <aside style="width:220px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);padding:20px 12px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 6px 20px;">
+        <div style="width:26px;height:26px;background:var(--amber);border-radius:6px;display:flex;align-items:center;justify-content:center;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" style="width:13px;height:13px;"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;">Admin Panel</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;flex:1;">
+        <div class="nav-item active" onclick="adminTab('overview')" id="anav-overview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Overview
+        </div>
+        <div class="nav-item" onclick="adminTab('users')" id="anav-users">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Users
+        </div>
+        <div class="nav-item" onclick="adminTab('jobs')" id="anav-jobs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>All Jobs
+        </div>
+      </div>
+      <div style="padding-top:12px;border-top:1px solid var(--border);">
+        <div class="nav-item" onclick="doLogout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out
+        </div>
+      </div>
+    </aside>
+    <main style="flex:1;overflow-x:hidden;">
+      <div style="padding:20px 28px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(13,13,13,.9);backdrop-filter:blur(10px);z-index:10;">
+        <h2 style="margin:0;font-size:1.1rem;font-weight:800;">Admin Dashboard</h2>
+        <p style="margin:0;font-size:12px;color:var(--muted);">System Overview</p>
+      </div>
+      <div style="padding:28px;">
+        <!-- OVERVIEW -->
+        <div id="atab-overview">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:28px;">
+            <div class="card" style="padding:22px;"><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Total Users</div><div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--amber);" id="a-stat-users">0</div></div>
+            <div class="card" style="padding:22px;"><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Active Jobs</div><div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#4ADE80;" id="a-stat-jobs">0</div></div>
+            <div class="card" style="padding:22px;"><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Applications</div><div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#60A5FA;" id="a-stat-apps">0</div></div>
+          </div>
+          <div class="card" style="padding:22px;">
+            <h3 style="font-size:15px;font-weight:800;margin:0 0 16px;">Recent Activity</h3>
+            <div id="admin-activity"></div>
+          </div>
+        </div>
+        <!-- USERS -->
+        <div id="atab-users" style="display:none;">
+          <div class="card" style="overflow:hidden;"><div id="admin-users-table"></div></div>
+        </div>
+        <!-- JOBS -->
+        <div id="atab-jobs" style="display:none;">
+          <div class="card" style="overflow:hidden;"><div id="admin-jobs-table"></div></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Job Detail Modal -->
+<div id="job-modal" style="display:none;" class="modal-overlay" onclick="if(event.target===this)closeJobModal()">
+  <div class="modal-box">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div class="avatar" id="modal-logo" style="width:52px;height:52px;border-radius:12px;background:rgba(245,158,11,.15);color:var(--amber);font-size:18px;"></div>
+        <div>
+          <h2 id="modal-title" style="margin:0;font-size:1.2rem;font-weight:800;"></h2>
+          <p id="modal-company" style="margin:0;font-size:13px;color:var(--muted);"></p>
+        </div>
+      </div>
+      <button onclick="closeJobModal()" style="background:rgba(255,255,255,.07);border:none;color:var(--text);cursor:pointer;padding:6px 10px;border-radius:7px;font-size:16px;">✕</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;" id="modal-badges"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+      <div class="card" style="padding:14px;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">SALARY</div><div style="font-weight:700;font-size:14px;" id="modal-salary"></div></div>
+      <div class="card" style="padding:14px;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">DEADLINE</div><div style="font-weight:700;font-size:14px;" id="modal-deadline"></div></div>
+    </div>
+    <h4 style="font-size:13px;font-weight:700;margin:0 0 10px;">Description</h4>
+    <p id="modal-desc" style="font-size:13px;color:#D1D5DB;line-height:1.7;margin:0 0 18px;"></p>
+    <h4 style="font-size:13px;font-weight:700;margin:0 0 10px;">Required Skills</h4>
+    <div id="modal-skills" style="margin-bottom:24px;"></div>
+    <button class="btn-amber" id="modal-apply-btn" style="width:100%;padding:13px;border-radius:9px;font-size:14px;" onclick="applyJob()">Apply Now →</button>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast"></div>
+<script>
+// ========================= DATA STORE =========================
+let state = {
+  currentUser: null,
+  users: [
+    { id:1, name:'Alex Johnson', email:'seeker@demo.com', role:'seeker', password:'demo' },
+    { id:2, name:'TechCorp Inc.', email:'employer@demo.com', role:'employer', password:'demo' },
+    { id:3, name:'Admin User', email:'admin@demo.com', role:'admin', password:'demo' },
+  ],
+  jobs: [
+    { id:1, title:'Senior React Developer', company:'TechCorp Inc.', employerId:2, category:'Technology', location:'Remote', salary:'$90k–$130k', experience:'3-5 years', type:'Full-time', skills:['React','TypeScript','Node.js','GraphQL'], description:'We are looking for a senior React developer to join our product team. You will build high-quality web apps, mentor junior devs, and collaborate with designers.', deadline:'2025-06-30', posted:'2025-04-01', active:true },
+    { id:2, title:'UI/UX Designer', company:'DesignLab', employerId:2, category:'Design', location:'New York', salary:'$70k–$95k', experience:'1-2 years', type:'Full-time', skills:['Figma','Prototyping','User Research','CSS'], description:'DesignLab is seeking a creative UI/UX designer to craft beautiful and intuitive user experiences for our client portfolio.', deadline:'2025-05-31', posted:'2025-03-20', active:true },
+    { id:3, title:'Data Scientist', company:'Analytics Co.', employerId:2, category:'Technology', location:'San Francisco', salary:'$100k–$140k', experience:'3-5 years', type:'Full-time', skills:['Python','Machine Learning','TensorFlow','SQL'], description:'Join our data science team to work on cutting-edge predictive models. You will have access to massive datasets and state-of-the-art infrastructure.', deadline:'2025-07-15', posted:'2025-04-05', active:true },
+    { id:4, title:'Marketing Manager', company:'GrowthHub', employerId:2, category:'Marketing', location:'London', salary:'£55k–£70k', experience:'3-5 years', type:'Full-time', skills:['SEO','Content Strategy','Google Ads','Analytics'], description:'GrowthHub is hiring a Marketing Manager to lead our digital marketing strategy and grow our user base across multiple channels.', deadline:'2025-06-01', posted:'2025-03-25', active:true },
+    { id:5, title:'Java Backend Engineer', company:'FinTech Solutions', employerId:2, category:'Finance', location:'Berlin', salary:'€70k–€95k', experience:'1-2 years', type:'Full-time', skills:['Java','Spring Boot','Microservices','Kafka'], description:'FinTech Solutions needs a Java backend engineer to build robust microservices for our real-time payments platform.', deadline:'2025-08-01', posted:'2025-04-10', active:true },
+    { id:6, title:'Product Manager Intern', company:'StartupXYZ', employerId:2, category:'Technology', location:'Remote', salary:'$2k/month', experience:'Fresher', type:'Internship', skills:['Agile','JIRA','Product Thinking','Communication'], description:'An exciting opportunity for freshers to break into product management. You will work directly with our founding team on core product features.', deadline:'2025-05-15', posted:'2025-04-12', active:true },
+  ],
+  applications: [],
+  notifications: [],
+  selectedJobId: null,
+};
+
+// Seed some applications
+state.applications = [
+  { id:1, jobId:1, userId:1, status:'Pending', date:'2025-04-10' },
+  { id:2, jobId:2, userId:1, status:'Shortlisted', date:'2025-04-08' },
+  { id:3, jobId:3, userId:1, status:'Rejected', date:'2025-04-05' },
+];
+state.notifications = [
+  { id:1, msg:'🎉 You have been shortlisted for UI/UX Designer at DesignLab!', read:false, date:'2025-04-09' },
+  { id:2, msg:'📋 Application submitted for Senior React Developer.', read:true, date:'2025-04-10' },
+  { id:3, msg:'❌ Application for Data Scientist was not selected.', read:false, date:'2025-04-06' },
+];
+
+// ========================= PAGES =========================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ========================= AUTH =========================
+function showAuth(mode='login', role='') {
+  showPage('auth');
+  switchAuth(mode);
+  if(role) document.getElementById('reg-role').value = role;
+}
+function switchAuth(mode) {
+  document.getElementById('form-login').style.display = mode==='login'?'block':'none';
+  document.getElementById('form-register').style.display = mode==='register'?'block':'none';
+  document.getElementById('toggle-login').classList.toggle('active', mode==='login');
+  document.getElementById('toggle-register').classList.toggle('active', mode==='register');
+}
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if(!email){ toast('Please enter your email'); return; }
+  // Allow any password for demo
+  const user = state.users.find(u => u.email.toLowerCase()===email.toLowerCase());
+  if(!user){ toast('❌ Account not found. Try seeker@demo.com, employer@demo.com, or admin@demo.com'); return; }
+  state.currentUser = user;
+  toast('✅ Welcome back, '+user.name+'!');
+  routeUser();
+}
+function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  const role = document.getElementById('reg-role').value;
+  if(!name||!email||!pass){ toast('Please fill all fields'); return; }
+  if(pass.length<6){ toast('Password must be at least 6 characters'); return; }
+  const exists = state.users.find(u=>u.email.toLowerCase()===email.toLowerCase());
+  if(exists){ toast('Email already registered'); return; }
+  const user = { id: state.users.length+1, name, email, role, password:pass };
+  state.users.push(user);
+  state.currentUser = user;
+  toast('🎉 Account created! Welcome, '+name+'!');
+  routeUser();
+}
+function routeUser() {
+  const r = state.currentUser.role;
+  if(r==='seeker'){ initSeekerDash(); showPage('seeker'); }
+  else if(r==='employer'){ initEmployerDash(); showPage('employer'); }
+  else if(r==='admin'){ initAdminDash(); showPage('admin'); }
+}
+function doLogout() {
+  state.currentUser = null;
+  showPage('landing');
+  toast('Signed out successfully');
+}
+
+// ========================= TICKER =========================
+function initTicker() {
+  const companies = ['🚀 TechCorp','💡 DesignLab','📊 Analytics Co.','💰 FinTech','🌱 GrowthHub','🛒 StartupXYZ','🏥 HealthFirst','🎓 EduTech','☁️ CloudBase','🔐 SecureOps'];
+  const html = [...companies,...companies].map(c=>`<span style="padding:0 28px;color:var(--muted);font-size:13px;font-weight:500;">${c}</span>`).join('');
+  document.getElementById('ticker').innerHTML = html;
+}
+
+// ========================= LANDING JOBS =========================
+function initLandingJobs() {
+  const el = document.getElementById('landing-jobs');
+  el.innerHTML = state.jobs.slice(0,3).map(j=>`
+    <div class="card" style="padding:20px;cursor:pointer;" onclick="showAuth('login')">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div class="avatar" style="background:rgba(245,158,11,.12);color:var(--amber);">${j.company[0]}</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;">${j.title}</div>
+          <div style="font-size:12px;color:var(--muted);">${j.company}</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+        <span class="badge badge-amber">${j.type}</span>
+        <span class="badge badge-gray">📍 ${j.location}</span>
+        <span class="badge badge-gray">${j.experience}</span>
+      </div>
+      <div style="font-size:13px;color:#D1D5DB;margin-bottom:12px;line-height:1.5;">${j.description.slice(0,100)}...</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-weight:700;font-size:14px;color:var(--amber);">${j.salary}</span>
+        <button class="btn-outline" style="padding:5px 14px;border-radius:6px;font-size:12px;">Apply →</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ========================= SEEKER DASHBOARD =========================
+function initSeekerDash() {
+  const u = state.currentUser;
+  const initials = u.name.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('seeker-avatar-nav').textContent = initials;
+  document.getElementById('s-avatar-big').textContent = initials;
+  document.getElementById('s-profile-name').textContent = u.name;
+  document.getElementById('s-profile-email').textContent = u.email;
+  document.getElementById('p-name').value = u.name;
+  document.getElementById('p-email').value = u.email;
+  updateSeekerStats();
+  renderRecentApps();
+  renderJobs();
+  renderAppsTable('all');
+  renderNotifications();
+}
+function seekerTab(tab) {
+  ['home','jobs','applications','profile','notifications'].forEach(t => {
+    document.getElementById('stab-'+t).style.display = t===tab?'block':'none';
+    document.getElementById('snav-'+t).classList.toggle('active', t===tab);
+  });
+  const titles = {home:'Dashboard',jobs:'Browse Jobs',applications:'My Applications',profile:'My Profile',notifications:'Notifications'};
+  document.getElementById('seeker-page-title').textContent = titles[tab];
+  if(tab==='jobs') renderJobs();
+}
+function updateSeekerStats() {
+  const myApps = state.applications.filter(a=>a.userId===state.currentUser.id);
+  document.getElementById('s-stat-apps').textContent = myApps.length;
+  document.getElementById('s-stat-short').textContent = myApps.filter(a=>a.status==='Shortlisted').length;
+  document.getElementById('s-stat-pend').textContent = myApps.filter(a=>a.status==='Pending').length;
+  const unread = state.notifications.filter(n=>!n.read).length;
+  document.getElementById('notif-dot-s').style.display = unread?'inline-block':'none';
+}
+function renderRecentApps() {
+  const myApps = state.applications.filter(a=>a.userId===state.currentUser.id).slice(0,3);
+  const el = document.getElementById('seeker-recent-apps');
+  if(!myApps.length){ el.innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center;padding:20px;">No applications yet. Browse jobs to get started!</p>'; return; }
+  el.innerHTML = myApps.map(a=>{
+    const job = state.jobs.find(j=>j.id===a.jobId);
+    return job ? `<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="avatar" style="background:rgba(245,158,11,.1);color:var(--amber);">${job.company[0]}</div>
+        <div><div style="font-weight:600;font-size:13px;">${job.title}</div><div style="font-size:11px;color:var(--muted);">${job.company} · ${a.date}</div></div>
+      </div>
+      ${statusBadge(a.status)}
+    </div>` : '';
+  }).join('');
+}
+function renderJobs() {
+  const search = (document.getElementById('job-search')||{}).value?.toLowerCase()||'';
+  const cat = (document.getElementById('job-cat')||{}).value||'';
+  const loc = (document.getElementById('job-loc')||{}).value||'';
+  const filtered = state.jobs.filter(j=>j.active&&
+    (!search||(j.title+j.skills.join(' ')+j.description).toLowerCase().includes(search))&&
+    (!cat||j.category===cat)&&
+    (!loc||j.location===loc));
+  const el = document.getElementById('jobs-list');
+  if(!el) return;
+  if(!filtered.length){ el.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">No jobs found matching your criteria.</div>'; return; }
+  el.innerHTML = filtered.map(j=>{
+    const applied = state.applications.some(a=>a.jobId===j.id&&a.userId===(state.currentUser?.id));
+    return `<div class="card" style="padding:20px;cursor:pointer;" onclick="openJobModal(${j.id})">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="avatar" style="background:rgba(245,158,11,.12);color:var(--amber);">${j.company[0]}</div>
+          <div><div style="font-weight:700;font-size:14px;">${j.title}</div><div style="font-size:12px;color:var(--muted);">${j.company}</div></div>
+        </div>
+        ${applied?'<span class="badge badge-green">Applied ✓</span>':''}
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+        <span class="badge badge-amber">${j.type}</span>
+        <span class="badge badge-gray">📍 ${j.location}</span>
+        <span class="badge badge-blue">${j.category}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;">${j.skills.slice(0,3).map(s=>`<span class="chip">${s}</span>`).join('')}</div>
+      <hr class="divider"/>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;">
+        <span style="font-weight:700;font-size:14px;color:var(--amber);">${j.salary}</span>
+        <span style="font-size:11px;color:var(--muted);">${j.experience}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+function renderAppsTable(filter='all') {
+  const myApps = state.applications.filter(a=>{
+    if(a.userId!==state.currentUser.id) return false;
+    if(filter!=='all'&&a.status!==filter) return false;
+    return true;
+  });
+  const el = document.getElementById('apps-table-container');
+  if(!myApps.length){ el.innerHTML='<p style="text-align:center;padding:32px;color:var(--muted);font-size:13px;">No applications in this category.</p>'; return; }
+  el.innerHTML = `<table><thead><tr><th>Job</th><th>Company</th><th>Applied</th><th>Status</th><th>Action</th></tr></thead><tbody>
+    ${myApps.map(a=>{
+      const job=state.jobs.find(j=>j.id===a.jobId)||{};
+      return `<tr><td><span style="font-weight:600;">${job.title||'N/A'}</span></td><td style="color:var(--muted);">${job.company||'N/A'}</td><td style="color:var(--muted);">${a.date}</td><td>${statusBadge(a.status)}</td>
+      <td><button class="btn-outline" style="padding:4px 12px;border-radius:6px;font-size:11px;" onclick="openJobModal(${a.jobId})">View</button></td></tr>`;
+    }).join('')}
+  </tbody></table>`;
+}
+function filterApps(filter, el) {
+  document.querySelectorAll('#app-filter-tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderAppsTable(filter);
+}
+function renderNotifications() {
+  const el = document.getElementById('notif-list');
+  if(!state.notifications.length){ el.innerHTML='<p style="text-align:center;padding:32px;color:var(--muted);font-size:13px;">No notifications.</p>'; return; }
+  el.innerHTML = state.notifications.map(n=>`
+    <div style="padding:14px 20px;border-bottom:1px solid rgba(42,42,42,.5);display:flex;align-items:center;gap:12px;${n.read?'opacity:.55':''}">
+      <div style="width:8px;height:8px;border-radius:50%;background:${n.read?'var(--border)':'var(--amber)'};flex-shrink:0;margin-top:2px;"></div>
+      <div style="flex:1;font-size:13px;">${n.msg}</div>
+      <span style="font-size:11px;color:var(--muted);flex-shrink:0;">${n.date}</span>
+    </div>
+  `).join('');
+  updateSeekerStats();
+}
+function clearNotifications() {
+  state.notifications.forEach(n=>n.read=true);
+  renderNotifications();
+  toast('All notifications marked as read');
+}
+function saveProfile() {
+  toast('✅ Profile saved successfully!');
+  const pct = Math.min(100, parseInt(document.getElementById('profile-pct').textContent)+15);
+  document.getElementById('profile-pct').textContent = pct+'%';
+  document.getElementById('profile-bar').style.width = pct+'%';
+}
+function handleResumeUpload(input) {
+  if(input.files[0]){
+    const el = document.getElementById('resume-status');
+    el.innerHTML = `<span style="color:#4ADE80;">✓ Resume uploaded: <strong>${input.files[0].name}</strong></span>`;
+    toast('📄 Resume uploaded successfully!');
+  }
+}
+
+// ========================= JOB MODAL =========================
+function openJobModal(jobId) {
+  const job = state.jobs.find(j=>j.id===jobId);
+  if(!job) return;
+  state.selectedJobId = jobId;
+  document.getElementById('modal-logo').textContent = job.company[0];
+  document.getElementById('modal-title').textContent = job.title;
+  document.getElementById('modal-company').textContent = job.company + ' · ' + job.location;
+  document.getElementById('modal-salary').textContent = job.salary;
+  document.getElementById('modal-deadline').textContent = job.deadline || 'Open';
+  document.getElementById('modal-desc').textContent = job.description;
+  document.getElementById('modal-badges').innerHTML = `<span class="badge badge-amber">${job.type}</span><span class="badge badge-blue">${job.category}</span><span class="badge badge-gray">📍 ${job.location}</span><span class="badge badge-gray">🎯 ${job.experience}</span>`;
+  document.getElementById('modal-skills').innerHTML = job.skills.map(s=>`<span class="chip">${s}</span>`).join('');
+  const applied = state.applications.some(a=>a.jobId===jobId&&a.userId===state.currentUser?.id);
+  const btn = document.getElementById('modal-apply-btn');
+  btn.textContent = applied ? '✓ Already Applied' : 'Apply Now →';
+  btn.disabled = applied;
+  btn.style.opacity = applied ? '.5' : '1';
+  document.getElementById('job-modal').style.display='flex';
+}
+function closeJobModal() { document.getElementById('job-modal').style.display='none'; }
+function applyJob() {
+  if(!state.currentUser||state.currentUser.role!=='seeker'){ toast('Please log in as a job seeker to apply'); return; }
+  const jobId=state.selectedJobId;
+  if(state.applications.some(a=>a.jobId===jobId&&a.userId===state.currentUser.id)){ toast('Already applied!'); return; }
+  const app = { id: state.applications.length+1, jobId, userId:state.currentUser.id, status:'Pending', date: new Date().toISOString().slice(0,10) };
+  state.applications.push(app);
+  const job = state.jobs.find(j=>j.id===jobId);
+  state.notifications.unshift({ id:state.notifications.length+1, msg:`📋 Application submitted for ${job.title} at ${job.company}.`, read:false, date:new Date().toISOString().slice(0,10) });
+  toast('🎉 Application submitted for '+job.title+'!');
+  closeJobModal();
+  updateSeekerStats();
+  renderRecentApps();
+  renderJobs();
+  renderAppsTable('all');
+}
+
+// ========================= EMPLOYER DASHBOARD =========================
+function initEmployerDash() {
+  updateEmployerStats();
+  renderEmpListingsPreview();
+  renderEmpFullListings();
+  renderEmployerApplicants();
+  initAppJobFilter();
+}
+function employerTab(tab) {
+  ['home','post','listings','applicants'].forEach(t=>{
+    document.getElementById('etab-'+t).style.display=t===tab?'block':'none';
+    document.getElementById('enav-'+t).classList.toggle('active',t===tab);
+  });
+  const titles={home:'Dashboard',post:'Post a Job',listings:'My Listings',applicants:'Applicants'};
+  document.getElementById('emp-page-title').textContent=titles[tab];
+  if(tab==='listings') renderEmpFullListings();
+  if(tab==='applicants'){ initAppJobFilter(); renderEmployerApplicants(); }
+}
+function updateEmployerStats() {
+  const myJobs = state.jobs.filter(j=>j.employerId===state.currentUser.id||state.currentUser.role==='employer');
+  const myJobIds = myJobs.map(j=>j.id);
+  const totalApps = state.applications.filter(a=>myJobIds.includes(a.jobId));
+  document.getElementById('e-stat-jobs').textContent = myJobs.filter(j=>j.active).length;
+  document.getElementById('e-stat-apps').textContent = totalApps.length;
+  document.getElementById('e-stat-short').textContent = totalApps.filter(a=>a.status==='Shortlisted').length;
+}
+function renderEmpListingsPreview() {
+  const myJobs=state.jobs.slice(0,4);
+  document.getElementById('emp-listings-preview').innerHTML=myJobs.length?`<table>
+    <thead><tr><th>Title</th><th>Category</th><th>Location</th><th>Applications</th><th>Status</th></tr></thead>
+    <tbody>${myJobs.map(j=>{
+      const apps=state.applications.filter(a=>a.jobId===j.id);
+      return `<tr><td><span style="font-weight:600;">${j.title}</span></td><td style="color:var(--muted);">${j.category}</td><td style="color:var(--muted);">${j.location}</td><td><span class="badge badge-blue">${apps.length} apps</span></td><td>${j.active?'<span class="badge badge-green">Active</span>':'<span class="badge badge-gray">Closed</span>'}</td></tr>`;
+    }).join('')}</tbody>
+  </table>`:'<p style="color:var(--muted);font-size:13px;text-align:center;padding:20px;">No jobs posted yet.</p>';
+}
+function renderEmpFullListings() {
+  const el=document.getElementById('emp-full-listings');
+  const myJobs=state.jobs;
+  el.innerHTML=myJobs.map(j=>`
+    <div class="card" style="padding:20px;margin-bottom:12px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <h3 style="margin:0 0 4px;font-size:15px;font-weight:800;">${j.title}</h3>
+          <p style="margin:0;font-size:12px;color:var(--muted);">${j.category} · ${j.location} · ${j.type}</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          ${j.active?'<span class="badge badge-green">Active</span>':'<span class="badge badge-gray">Closed</span>'}
+          <button class="btn-outline" style="padding:6px 14px;border-radius:7px;font-size:12px;" onclick="toggleJobStatus(${j.id})">${j.active?'Close':'Reopen'}</button>
+          <button style="background:rgba(239,68,68,.12);color:#F87171;border:1px solid rgba(239,68,68,.25);padding:6px 14px;border-radius:7px;font-size:12px;cursor:pointer;" onclick="deleteJob(${j.id})">Delete</button>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;">
+        ${j.skills.map(s=>`<span class="chip">${s}</span>`).join('')}
+      </div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:16px;font-size:12px;color:var(--muted);">
+        <span>💰 ${j.salary}</span>
+        <span>📅 Deadline: ${j.deadline||'Open'}</span>
+        <span>👥 ${state.applications.filter(a=>a.jobId===j.id).length} applicant(s)</span>
+      </div>
+    </div>
+  `).join('');
+}
+function toggleJobStatus(jobId) {
+  const job=state.jobs.find(j=>j.id===jobId);
+  if(job){ job.active=!job.active; renderEmpFullListings(); updateEmployerStats(); toast(`Job ${job.active?'activated':'closed'}: ${job.title}`); }
+}
+function deleteJob(jobId) {
+  const idx=state.jobs.findIndex(j=>j.id===jobId);
+  if(idx>-1){ const t=state.jobs[idx].title; state.jobs.splice(idx,1); renderEmpFullListings(); renderJobs(); updateEmployerStats(); toast(`Job deleted: ${t}`); }
+}
+function postJob() {
+  const title=document.getElementById('j-title').value.trim();
+  const desc=document.getElementById('j-desc').value.trim();
+  if(!title||!desc){ toast('Please fill in Job Title and Description'); return; }
+  const job={
+    id: state.jobs.length+1,
+    title, company:state.currentUser.name, employerId:state.currentUser.id,
+    category:document.getElementById('j-cat').value,
+    location:document.getElementById('j-loc').value||'Remote',
+    salary:document.getElementById('j-salary').value||'Competitive',
+    experience:document.getElementById('j-exp').value,
+    type:document.getElementById('j-type').value,
+    skills:document.getElementById('j-skills').value.split(',').map(s=>s.trim()).filter(Boolean),
+    description:desc,
+    deadline:document.getElementById('j-deadline').value||'',
+    posted:new Date().toISOString().slice(0,10),
+    active:true,
+  };
+  state.jobs.push(job);
+  toast('🎉 Job published: '+title);
+  ['j-title','j-loc','j-salary','j-skills','j-desc'].forEach(id=>document.getElementById(id).value='');
+  updateEmployerStats();
+  employerTab('listings');
+}
+function initAppJobFilter() {
+  const sel=document.getElementById('app-job-filter');
+  if(!sel) return;
+  sel.innerHTML='<option value="">All Jobs</option>'+state.jobs.map(j=>`<option value="${j.id}">${j.title}</option>`).join('');
+}
+function renderEmployerApplicants() {
+  const filterJobId=parseInt(document.getElementById('app-job-filter')?.value)||0;
+  const apps=state.applications.filter(a=>!filterJobId||a.jobId===filterJobId);
+  const el=document.getElementById('applicants-table');
+  if(!el) return;
+  if(!apps.length){ el.innerHTML='<p style="text-align:center;padding:32px;color:var(--muted);font-size:13px;">No applicants found.</p>'; return; }
+  el.innerHTML=`<table>
+    <thead><tr><th>Applicant</th><th>Job</th><th>Applied</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody>${apps.map(a=>{
+      const job=state.jobs.find(j=>j.id===a.jobId)||{};
+      const user=state.users.find(u=>u.id===a.userId)||{};
+      const initials=(user.name||'U').split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
+      return `<tr>
+        <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="background:rgba(245,158,11,.1);color:var(--amber);">${initials}</div><div><div style="font-weight:600;font-size:13px;">${user.name||'User'}</div><div style="font-size:11px;color:var(--muted);">${user.email||''}</div></div></div></td>
+        <td style="font-size:13px;">${job.title||'N/A'}</td>
+        <td style="color:var(--muted);font-size:12px;">${a.date}</td>
+        <td>${statusBadge(a.status)}</td>
+        <td>
+          <div style="display:flex;gap:6px;">
+            <button style="background:rgba(34,197,94,.12);color:#4ADE80;border:1px solid rgba(34,197,94,.25);padding:4px 11px;border-radius:5px;font-size:11px;cursor:pointer;font-weight:600;" onclick="updateAppStatus(${a.id},'Shortlisted')">✓ Shortlist</button>
+            <button style="background:rgba(239,68,68,.12);color:#F87171;border:1px solid rgba(239,68,68,.25);padding:4px 11px;border-radius:5px;font-size:11px;cursor:pointer;font-weight:600;" onclick="updateAppStatus(${a.id},'Rejected')">✕ Reject</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('')}
+  </tbody></table>`;
+}
+function updateAppStatus(appId, status) {
+  const app=state.applications.find(a=>a.id===appId);
+  if(!app){ toast('Application not found'); return; }
+  app.status=status;
+  const job=state.jobs.find(j=>j.id===app.jobId)||{};
+  const emoji=status==='Shortlisted'?'🎉':'❌';
+  state.notifications.unshift({ id:state.notifications.length+1, msg:`${emoji} Your application for ${job.title} has been ${status.toLowerCase()}.`, read:false, date:new Date().toISOString().slice(0,10) });
+  toast(`Applicant ${status.toLowerCase()} for ${job.title}`);
+  renderEmployerApplicants();
+  updateEmployerStats();
+}
+
+// ========================= ADMIN DASHBOARD =========================
+function initAdminDash() {
+  document.getElementById('a-stat-users').textContent = state.users.length;
+  document.getElementById('a-stat-jobs').textContent = state.jobs.filter(j=>j.active).length;
+  document.getElementById('a-stat-apps').textContent = state.applications.length;
+  renderAdminActivity();
+  renderAdminUsers();
+  renderAdminJobs();
+}
+function adminTab(tab) {
+  ['overview','users','jobs'].forEach(t=>{
+    document.getElementById('atab-'+t).style.display=t===tab?'block':'none';
+    document.getElementById('anav-'+t).classList.toggle('active',t===tab);
+  });
+}
+function renderAdminActivity() {
+  const acts=[
+    'New user registered: seeker@demo.com',
+    'Job posted: Senior React Developer by TechCorp',
+    'Application submitted for UI/UX Designer',
+    'Applicant shortlisted for Data Scientist',
+    'Job posted: Java Backend Engineer by FinTech',
+  ];
+  document.getElementById('admin-activity').innerHTML=acts.map(a=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;color:#D1D5DB;">
+      <div style="width:6px;height:6px;background:var(--amber);border-radius:50%;flex-shrink:0;"></div>${a}
+    </div>
+  `).join('');
+}
+function renderAdminUsers() {
+  document.getElementById('admin-users-table').innerHTML=`<table>
+    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th></tr></thead>
+    <tbody>${state.users.map(u=>`<tr>
+      <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="background:rgba(245,158,11,.1);color:var(--amber);">${u.name.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase()}</div><span style="font-weight:600;font-size:13px;">${u.name}</span></div></td>
+      <td style="color:var(--muted);font-size:13px;">${u.email}</td>
+      <td>${u.role==='seeker'?'<span class="badge badge-blue">Job Seeker</span>':u.role==='employer'?'<span class="badge badge-amber">Employer</span>':'<span class="badge badge-red">Admin</span>'}</td>
+      <td><span class="badge badge-green">Active</span></td>
+    </tr>`).join('')}
+    </tbody></table>`;
+}
+function renderAdminJobs() {
+  document.getElementById('admin-jobs-table').innerHTML=`<table>
+    <thead><tr><th>Title</th><th>Company</th><th>Category</th><th>Apps</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody>${state.jobs.map(j=>`<tr>
+      <td><span style="font-weight:600;font-size:13px;">${j.title}</span></td>
+      <td style="color:var(--muted);font-size:12px;">${j.company}</td>
+      <td style="font-size:12px;">${j.category}</td>
+      <td><span class="badge badge-blue">${state.applications.filter(a=>a.jobId===j.id).length}</span></td>
+      <td>${j.active?'<span class="badge badge-green">Active</span>':'<span class="badge badge-gray">Closed</span>'}</td>
+      <td><button style="background:rgba(239,68,68,.12);color:#F87171;border:1px solid rgba(239,68,68,.25);padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;" onclick="adminDeleteJob(${j.id})">Remove</button></td>
+    </tr>`).join('')}
+    </tbody></table>`;
+}
+function adminDeleteJob(jobId) {
+  const idx=state.jobs.findIndex(j=>j.id===jobId);
+  if(idx>-1){ state.jobs.splice(idx,1); initAdminDash(); toast('Job removed by admin'); }
+}
+
+// ========================= HELPERS =========================
+function statusBadge(s) {
+  const map={Pending:'badge-blue',Shortlisted:'badge-green',Rejected:'badge-red'};
+  return `<span class="badge ${map[s]||'badge-gray'}">${s}</span>`;
+}
+function toast(msg) {
+  const el=document.getElementById('toast');
+  const item=document.createElement('div');
+  item.className='toast-item';
+  item.textContent=msg;
+  el.appendChild(item);
+  setTimeout(()=>{ item.style.opacity='0'; item.style.transition='opacity .3s'; setTimeout(()=>item.remove(),350); },3500);
+}
+
+// ========================= INIT =========================
+initTicker();
+initLandingJobs();
+// Set default date for job deadline
+const tomorrow=new Date(); tomorrow.setDate(tomorrow.getDate()+30);
+setTimeout(()=>{ const d=document.getElementById('j-deadline'); if(d) d.value=tomorrow.toISOString().slice(0,10); },100);
+</script> 
+</body>
+</html>
